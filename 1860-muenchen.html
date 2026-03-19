@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TSV 1860 München – Saisonverlauf 2025/26</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Inter:wght@400;500;600&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --loewen-blau: #0A3D91;
+            --loewen-blau-dark: #062a66;
+            --loewen-blau-light: #1a5ec7;
+            --gold: #C9A84C;
+            --gold-light: #e0c87a;
+            --weiss: #FFFFFF;
+            --hellgrau: #e8edf4;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--loewen-blau-dark) 0%, var(--loewen-blau) 50%, #0e4a9e 100%);
+            min-height: 100vh;
+            color: var(--weiss);
+        }
+
+        .header {
+            text-align: center;
+            padding: 2.5rem 1rem 1.5rem;
+            background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, transparent 100%);
+        }
+
+        .header .wappen {
+            margin: 0 auto 0.8rem;
+            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
+        }
+
+        .header h1 {
+            font-family: 'Oswald', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--weiss);
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.4);
+        }
+
+        .header h1 span {
+            color: var(--gold);
+        }
+
+        .header .dedication {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.4rem;
+            color: var(--gold);
+            letter-spacing: 3px;
+            margin-top: 0.6rem;
+            text-transform: uppercase;
+            text-shadow: 1px 1px 6px rgba(0,0,0,0.5);
+        }
+
+        .header .subtitle {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.1rem;
+            color: var(--gold-light);
+            letter-spacing: 2px;
+            margin-top: 0.3rem;
+            text-transform: uppercase;
+        }
+
+        .header .divider {
+            width: 120px;
+            height: 3px;
+            background: var(--gold);
+            margin: 1rem auto 0;
+            border-radius: 2px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 1.5rem 1rem 3rem;
+        }
+
+        /* Stat cards */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 12px;
+            padding: 1.2rem 1rem;
+            text-align: center;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            background: rgba(255,255,255,0.15);
+        }
+
+        .stat-card .value {
+            font-family: 'Oswald', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gold);
+        }
+
+        .stat-card .label {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.8);
+            margin-top: 0.3rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Chart container */
+        .chart-section {
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-section h2 {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.3rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 1rem;
+            color: var(--gold-light);
+        }
+
+        .chart-wrapper {
+            position: relative;
+            width: 100%;
+            height: 400px;
+        }
+
+        /* Table */
+        .table-section {
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 16px;
+            padding: 1.5rem;
+            overflow-x: auto;
+        }
+
+        .table-section h2 {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.3rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 1rem;
+            color: var(--gold-light);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            font-family: 'Oswald', sans-serif;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--gold);
+            padding: 0.7rem 0.5rem;
+            border-bottom: 2px solid var(--gold);
+            text-align: center;
+        }
+
+        th:first-child { text-align: left; }
+
+        td {
+            padding: 0.55rem 0.5rem;
+            text-align: center;
+            font-size: 0.95rem;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            font-variant-numeric: tabular-nums;
+        }
+
+        td:first-child {
+            text-align: left;
+            font-weight: 600;
+        }
+
+        tr:hover td {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .pos-up { color: #4ade80; }
+        .pos-down { color: #f87171; }
+        .pos-same { color: rgba(255,255,255,0.5); }
+
+        .badge {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .badge-best { background: var(--gold); color: var(--loewen-blau-dark); }
+        .badge-worst { background: rgba(248,113,113,0.25); color: #fca5a5; }
+
+        .footer {
+            text-align: center;
+            padding: 2rem 1rem 1rem;
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.4);
+        }
+
+        @media (max-width: 600px) {
+            .header h1 { font-size: 1.5rem; letter-spacing: 1px; }
+            .chart-wrapper { height: 300px; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <img class="wappen" src="1860-wappen.png" alt="TSV 1860 München Wappen">
+    <div class="dedication">Für Luis</div>
+    <h1>TSV <span>1860</span> München</h1>
+    <div class="subtitle">Saisonverlauf 3. Liga 2025/26</div>
+    <div class="divider"></div>
+</div>
+
+<div class="container">
+
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="value">7.</div>
+            <div class="label">Aktueller Platz</div>
+        </div>
+        <div class="stat-card">
+            <div class="value">49</div>
+            <div class="label">Punkte</div>
+        </div>
+        <div class="stat-card">
+            <div class="value">2.</div>
+            <div class="label">Bester Platz</div>
+        </div>
+        <div class="stat-card">
+            <div class="value">14.</div>
+            <div class="label">Schlechtester</div>
+        </div>
+    </div>
+
+    <div class="chart-section">
+        <h2>📈 Tabellenplatz pro Spieltag</h2>
+        <div class="chart-wrapper">
+            <canvas id="posChart"></canvas>
+        </div>
+    </div>
+
+    <div class="chart-section">
+        <h2>⚽ Punkteentwicklung</h2>
+        <div class="chart-wrapper">
+            <canvas id="ptsChart"></canvas>
+        </div>
+    </div>
+
+    <div class="table-section">
+        <h2>📋 Detailübersicht</h2>
+        <table id="dataTable">
+            <thead>
+                <tr>
+                    <th>Spieltag</th>
+                    <th>Platz</th>
+                    <th>Punkte</th>
+                    <th>Tendenz</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+</div>
+
+<div class="footer">
+    Datenquelle: sportschau.de · Stand: Spieltag 30 · Saison 2025/26
+</div>
+
+<script>
+const data = [
+    { spieltag: 1,  platz: 11, punkte: 1  },
+    { spieltag: 2,  platz: 5,  punkte: 4  },
+    { spieltag: 3,  platz: 3,  punkte: 7  },
+    { spieltag: 4,  platz: 3,  punkte: 8  },
+    { spieltag: 5,  platz: 2,  punkte: 11 },
+    { spieltag: 6,  platz: 4,  punkte: 11 },
+    { spieltag: 7,  platz: 10, punkte: 11 },
+    { spieltag: 8,  platz: 10, punkte: 11 },
+    { spieltag: 9,  platz: 12, punkte: 12 },
+    { spieltag: 10, platz: 13, punkte: 12 },
+    { spieltag: 11, platz: 12, punkte: 15 },
+    { spieltag: 12, platz: 14, punkte: 15 },
+    { spieltag: 13, platz: 13, punkte: 18 },
+    { spieltag: 14, platz: 14, punkte: 18 },
+    { spieltag: 15, platz: 11, punkte: 21 },
+    { spieltag: 16, platz: 10, punkte: 24 },
+    { spieltag: 17, platz: 9,  punkte: 27 },
+    { spieltag: 18, platz: 7,  punkte: 30 },
+    { spieltag: 19, platz: 8,  punkte: 30 },
+    { spieltag: 20, platz: 9,  punkte: 31 },
+    { spieltag: 21, platz: 8,  punkte: 32 },
+    { spieltag: 22, platz: 8,  punkte: 33 },
+    { spieltag: 23, platz: 9,  punkte: 33 },
+    { spieltag: 24, platz: 8,  punkte: 36 },
+    { spieltag: 25, platz: 8,  punkte: 39 },
+    { spieltag: 26, platz: 8,  punkte: 42 },
+    { spieltag: 27, platz: 7,  punkte: 45 },
+    { spieltag: 28, platz: 6,  punkte: 48 },
+    { spieltag: 29, platz: 7,  punkte: 49 },
+    { spieltag: 30, platz: 7,  punkte: 49 },
+];
+
+const labels = data.map(d => d.spieltag);
+const positions = data.map(d => d.platz);
+const points = data.map(d => d.punkte);
+
+// Position chart (inverted y-axis: 1 = top)
+const posCtx = document.getElementById('posChart').getContext('2d');
+const gradient = posCtx.createLinearGradient(0, 0, 0, 400);
+gradient.addColorStop(0, 'rgba(201,168,76,0.4)');
+gradient.addColorStop(1, 'rgba(201,168,76,0.02)');
+
+new Chart(posCtx, {
+    type: 'line',
+    data: {
+        labels: labels,
+        datasets: [{
+            label: 'Tabellenplatz',
+            data: positions,
+            borderColor: '#C9A84C',
+            backgroundColor: gradient,
+            borderWidth: 3,
+            pointBackgroundColor: '#C9A84C',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 5,
+            pointHoverRadius: 8,
+            fill: true,
+            tension: 0.3
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                reverse: true,
+                min: 1,
+                max: 20,
+                ticks: {
+                    color: 'rgba(255,255,255,0.7)',
+                    font: { family: 'Oswald', size: 13 },
+                    stepSize: 1,
+                    callback: v => v + '.'
+                },
+                grid: {
+                    color: 'rgba(255,255,255,0.07)',
+                    drawBorder: false
+                }
+            },
+            x: {
+                ticks: {
+                    color: 'rgba(255,255,255,0.7)',
+                    font: { family: 'Oswald', size: 13 }
+                },
+                grid: { display: false }
+            }
+        },
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                backgroundColor: 'rgba(6,42,102,0.95)',
+                titleFont: { family: 'Oswald', size: 14 },
+                bodyFont: { family: 'Inter', size: 13 },
+                borderColor: '#C9A84C',
+                borderWidth: 1,
+                padding: 12,
+                callbacks: {
+                    title: ctx => 'Spieltag ' + ctx[0].label,
+                    label: ctx => 'Platz ' + ctx.raw
+                }
+            }
+        }
+    }
+});
+
+// Points chart
+const ptsCtx = document.getElementById('ptsChart').getContext('2d');
+const ptsGradient = ptsCtx.createLinearGradient(0, 0, 0, 400);
+ptsGradient.addColorStop(0, 'rgba(255,255,255,0.25)');
+ptsGradient.addColorStop(1, 'rgba(255,255,255,0.02)');
+
+new Chart(ptsCtx, {
+    type: 'line',
+    data: {
+        labels: labels,
+        datasets: [{
+            label: 'Punkte',
+            data: points,
+            borderColor: '#FFFFFF',
+            backgroundColor: ptsGradient,
+            borderWidth: 3,
+            pointBackgroundColor: '#fff',
+            pointBorderColor: '#C9A84C',
+            pointBorderWidth: 2,
+            pointRadius: 5,
+            pointHoverRadius: 8,
+            fill: true,
+            tension: 0.3
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                min: 0,
+                ticks: {
+                    color: 'rgba(255,255,255,0.7)',
+                    font: { family: 'Oswald', size: 13 }
+                },
+                grid: {
+                    color: 'rgba(255,255,255,0.07)',
+                    drawBorder: false
+                }
+            },
+            x: {
+                ticks: {
+                    color: 'rgba(255,255,255,0.7)',
+                    font: { family: 'Oswald', size: 13 }
+                },
+                grid: { display: false }
+            }
+        },
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                backgroundColor: 'rgba(6,42,102,0.95)',
+                titleFont: { family: 'Oswald', size: 14 },
+                bodyFont: { family: 'Inter', size: 13 },
+                borderColor: '#C9A84C',
+                borderWidth: 1,
+                padding: 12,
+                callbacks: {
+                    title: ctx => 'Spieltag ' + ctx[0].label,
+                    label: ctx => ctx.raw + ' Punkte'
+                }
+            }
+        }
+    }
+});
+
+// Populate table
+const tbody = document.querySelector('#dataTable tbody');
+const bestPos = Math.min(...positions);
+const worstPos = Math.max(...positions);
+
+data.forEach((d, i) => {
+    const tr = document.createElement('tr');
+    let tendenz = '';
+    if (i > 0) {
+        const diff = data[i - 1].platz - d.platz;
+        if (diff > 0) tendenz = `<span class="pos-up">▲ ${diff}</span>`;
+        else if (diff < 0) tendenz = `<span class="pos-down">▼ ${Math.abs(diff)}</span>`;
+        else tendenz = `<span class="pos-same">●</span>`;
+    } else {
+        tendenz = '<span class="pos-same">–</span>';
+    }
+
+    let badge = '';
+    if (d.platz === bestPos) badge = ' <span class="badge badge-best">Beste</span>';
+    if (d.platz === worstPos) badge = ' <span class="badge badge-worst">Tiefpunkt</span>';
+
+    tr.innerHTML = `
+        <td>${d.spieltag}. Spieltag</td>
+        <td>${d.platz}.${badge}</td>
+        <td>${d.punkte}</td>
+        <td>${tendenz}</td>
+    `;
+    tbody.appendChild(tr);
+});
+</script>
+
+</body>
+</html>
